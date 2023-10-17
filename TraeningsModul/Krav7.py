@@ -1,0 +1,1 @@
+# Krav: Løsningen bør kunne fremvise batteriniveau på løsningens hardwaredel.
