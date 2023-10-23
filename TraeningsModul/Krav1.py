@@ -44,6 +44,8 @@ def get_battery_percent():
 
 while True:
     try:
+        mqtt.web_print(get_battery_percent(), 'Shadow02Hunter/feeds/Batteri/csv')
+        sleep(3)
         # Hvis funktionen returnere en string er den True ellers returnere den False
         gps_data = get_adafruit_gps()
         if gps_data: # hvis der er korrekt data så send til adafruit
@@ -67,6 +69,8 @@ while True:
         mqtt.sync_with_adafruitIO() # igangsæt at sende og modtage data med Adafruit IO             
         print(".", end = '') # printer et punktum til shell, uden et enter        
     # Stopper programmet når der trykkes Ctrl + c
+        
+        
     except KeyboardInterrupt:
         print('Ctrl-C pressed...exiting')
         mqtt.c.disconnect()
