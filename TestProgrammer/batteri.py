@@ -16,7 +16,10 @@ def read_battery_voltage_avg64():
     return voltage
 
 def get_battery_percent():
-    adc64_val = read_battery_voltage_avg64()
+    adc_val = 0
+    for i in range(64):
+        adc_val += bat_adc.read()
+    adc64_val = adc_val >> 6
     bat_percent = (adc64_val - 1500) / 7.3
     return bat_percent
 
