@@ -67,7 +67,6 @@ while True:
         mqtt.sync_with_adafruitIO() # igangsæt at sende og modtage data med Adafruit IO             
         print(".", end = '') # printer et punktum til shell, uden et enter        
     # Stopper programmet når der trykkes Ctrl + c
-    except KeyboardInterrupt:
-        print('Ctrl-C pressed...exiting')
-        mqtt.c.disconnect()
-        mqtt.sys.exit()
+    bat_percent = get_adafruit_battery()
+    mqtt.web_print(get_adafruit_battery(), 'Shadow02Hunter/feeds/Batteri/csv')
+ 
