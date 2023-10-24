@@ -2,18 +2,18 @@ import umqtt_robust2 as mqtt
 from neopixel import NeoPixel
 from machine import Pin, Timer
 from time import sleep
-current_np = 10
 n = 12
 np = NeoPixel(Pin(26, Pin.OUT),n)
 
-myTimer = Timer(1)
+myTimer1 = Timer(1)
+myTimer2 = Timer(2)
 
 def set_color(r, g, b): # Vi definere set_color funktionen, så vi kan få neopixel til at lyse i forskellige farver
     for i in range(n):
         np[i] = (r, g, b)
     np.write()
     
-def clear(): #Vi definere clear funkrionen, så vi kan slukke led'erne på neopixel efter de er tændt
+def clear(): #Vi definere clear funktionen, så vi kan slukke led'erne på neopixel efter de er tændt
     for i in range(n):
         np[i] = (0, 0, 0)
         np.write()
@@ -24,18 +24,27 @@ def blink_purple():
     clear()
     sleep(0.5)
 
-def timeout(myTimer):
-    turn_off_np(current_np)
-    current_np = (current_np - 1) % n
-    turn_off_np(current_np)
+def timeout(myTimer2):    
+#    current_np = 9
+#    np[current_np] = (0, 0, 0)
+#    current_np = (current_np - 1) % n
+    set_color(255, 0, 0)
+    sleep(0.5)
+    set_color(255, 255, 255)
+    sleep(0.5)
+
+def jhg(myTimer1):
+    set_color(0, 255, 0)
+    myTimer2.deinit()
 
 
 while True:
     try:
-    
         if mqtt.besked == "gult kort":
-            set_color(255, 255, 0) #Farve sat tol gul
-            myTimer.init(period = 60000, mode = Timer.PERIODIC, callback = timeout)
+            set_color(255, 255, 0) #Farve sat til gul
+            myTimer2.init(period=5000, mode=Timer.PERIODIC, callback=timeout)
+#            myTimer2.deinit()
+            myTimer1.init(period=11000, mode=Timer.ONE_SHOT, callback=jhg)
         elif mqtt.besked ==  "udskiftning":
             for i in range(20):
                 blink_purple()
