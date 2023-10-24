@@ -1,10 +1,12 @@
 import umqtt_robust2 as mqtt
 from neopixel import NeoPixel
-from machine import Pin
+from machine import Pin, Timer
 from time import sleep
-
+current_np = 10
 n = 12
 np = NeoPixel(Pin(26, Pin.OUT),n)
+
+myTimer = Timer(1)
 
 def set_color(r, g, b): # Vi definere set_color funktionen, så vi kan få neopixel til at lyse i forskellige farver
     for i in range(n):
@@ -22,12 +24,18 @@ def blink_purple():
     clear()
     sleep(0.5)
 
+def timeout(myTimer):
+    turn_off_np(current_np)
+    current_np = (current_np - 1) % n
+    turn_off_np(current_np)
+
+
 while True:
     try:
     
         if mqtt.besked == "gult kort":
             set_color(255, 255, 0) #Farve sat tol gul
-            
+            myTimer.init(period = 60000, mode = Timer.PERIODIC, callback = timeout)
         elif mqtt.besked ==  "udskiftning":
             for i in range(20):
                 blink_purple()
