@@ -6,16 +6,31 @@ from time import sleep
 n = 12
 np = NeoPixel(Pin(26, Pin.OUT),n)
 
-def set_color(r, g, b):
+def set_color(r, g, b): # Vi definere set_color funktionen, så vi kan få neopixel til at lyse i forskellige farver
     for i in range(n):
         np[i] = (r, g, b)
     np.write()
+    
+def clear(): #Vi definere clear funkrionen, så vi kan slukke led'erne på neopixel efter de er tændt
+    for i in range(n):
+        np[i] = (0, 0, 0)
+        np.write()
+        
+def blink_purple():
+    set_color(255, 0, 255) #Farve sat til lilla
+    sleep(0.5)
+    clear()
+    sleep(0.5)
 
 while True:
     try:
     
         if mqtt.besked == "gult kort":
-            set_color(255, 255, 0)
+            set_color(255, 255, 0) #Farve sat tol gul
+            
+        elif mqtt.besked ==  "udskiftning":
+            for i in range(20):
+                blink_purple()
         
         if len(mqtt.besked) != 0: # Her nulstilles indkommende beskeder
             mqtt.besked = ""
