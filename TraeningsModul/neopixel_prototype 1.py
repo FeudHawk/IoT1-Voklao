@@ -48,11 +48,12 @@ while True:
     try:
         if mqtt.besked == "gult kort":
             sleep(0.5)
-            print("Hello")
+            print("Gult kort")
             set_color(255, 255, 0) #Farve sat til gul
             myTimer2.init(period=60000, mode=Timer.PERIODIC, callback=timeout)
             myTimer1.init(period=600000, mode=Timer.ONE_SHOT, callback=jhg)
         elif mqtt.besked ==  "udskiftning":
+            print("Udskiftning")
             for i in range(20):
                 blink_purple()
         
