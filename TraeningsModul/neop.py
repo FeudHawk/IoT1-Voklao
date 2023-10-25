@@ -2,7 +2,7 @@ import umqtt_robust2 as mqtt
 from neopixel import NeoPixel
 from machine import Pin, Timer
 from time import sleep
-n = 12
+n = 10
 np = NeoPixel(Pin(26, Pin.OUT),n)
 
 myTimer1 = Timer(1)
@@ -25,13 +25,13 @@ def blink_purple():
     sleep(0.5)
 
 def timeout(myTimer2):    
-#    current_np = 9
-#    np[current_np] = (0, 0, 0)
-#    current_np = (current_np - 1) % n
-    set_color(255, 0, 0)
-    sleep(0.5)
-    set_color(255, 255, 255)
-    sleep(0.5)
+    current_np = 9
+    np[current_np] = (0, 0, 0)
+    current_np = (current_np - 1) % n
+#     set_color(255, 0, 0)
+#     sleep(0.5)
+#     set_color(255, 255, 255)
+#     sleep(0.5)
 
 def jhg(myTimer1):
     set_color(0, 255, 0)
@@ -42,9 +42,9 @@ while True:
     try:
         if mqtt.besked == "gult kort":
             set_color(255, 255, 0) #Farve sat til gul
-            myTimer2.init(period=5000, mode=Timer.PERIODIC, callback=timeout)
+            myTimer2.init(period=60000, mode=Timer.PERIODIC, callback=timeout)
 #            myTimer2.deinit()
-            myTimer1.init(period=11000, mode=Timer.ONE_SHOT, callback=jhg)
+            myTimer1.init(period=600000, mode=Timer.ONE_SHOT, callback=jhg)
         elif mqtt.besked ==  "udskiftning":
             for i in range(20):
                 blink_purple()

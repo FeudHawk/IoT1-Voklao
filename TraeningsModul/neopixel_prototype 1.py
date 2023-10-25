@@ -1,7 +1,8 @@
+import umqtt_robust2 as mqtt
 from neopixel import NeoPixel
 from machine import Pin, Timer
 from time import sleep
-import umqtt_robust2 as mqtt
+
 antal_led = 10
 np = NeoPixel(Pin(26, Pin.OUT),antal_led)
 pb1 = Pin(4, Pin.IN)
@@ -47,11 +48,11 @@ def jhg(myTimer1):
 while True:
     try:
         if mqtt.besked == "gult kort":
-            sleep(0.5)
-            print("Gult kort")
+#             sleep(0.5)
+#             print("Gult kort")
             set_color(255, 255, 0) #Farve sat til gul
-            myTimer2.init(period=60000, mode=Timer.PERIODIC, callback=timeout)
-            myTimer1.init(period=600000, mode=Timer.ONE_SHOT, callback=jhg)
+            myTimer2.init(period=6000, mode=Timer.PERIODIC, callback=timeout)
+            myTimer1.init(period=60000, mode=Timer.ONE_SHOT, callback=jhg)
         elif mqtt.besked ==  "udskiftning":
             print("Udskiftning")
             for i in range(20):
@@ -60,7 +61,7 @@ while True:
         if len(mqtt.besked) != 0: # Her nulstilles indkommende beskeder
             mqtt.besked = ""
             
-            mqtt.sync_with_adafruitIO() # igangsæt at sende og modtage data med Adafruit IO             
+        mqtt.sync_with_adafruitIO() # igangsæt at sende og modtage data med Adafruit IO             
         #sleep(1) # Udkommentér denne og næste linje for at se visuelt output
         #print(".", end = '') # printer et punktum til shell, uden et enter        
     
