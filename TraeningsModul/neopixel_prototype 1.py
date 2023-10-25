@@ -2,7 +2,7 @@ import umqtt_robust2 as mqtt
 from neopixel import NeoPixel
 from machine import Pin, Timer
 from time import sleep
-
+#tjek non blocking delays
 antal_led = 10
 np = NeoPixel(Pin(26, Pin.OUT),antal_led)
 pb1 = Pin(4, Pin.IN)
@@ -27,6 +27,13 @@ def blink_purple():
     clear()
     sleep(0.5)
  
+class States:
+    timeout = True
+
+
+
+
+
 
 def timeout(myTimer2):
     global current_np
@@ -43,21 +50,31 @@ def jhg(myTimer1):
     global antal_led
     antal_led = 10
     set_color(0, 255, 0)
+    sleep(5)
+    set_color(255, 255, 0)
     myTimer2.deinit()
     
 while True:
     try:
         if mqtt.besked == "gult kort":
-#             sleep(0.5)
+            States.timeout = True
 #             print("Gult kort")
             set_color(255, 255, 0) #Farve sat til gul
-            myTimer2.init(period=6000, mode=Timer.PERIODIC, callback=timeout)
-            myTimer1.init(period=60000, mode=Timer.ONE_SHOT, callback=jhg)
+            myTimer2.init(period=1000, mode=Timer.PERIODIC, callback=timeout)
+            myTimer1.init(period=10000, mode=Timer.ONE_SHOT, callback=jhg)
+            
         elif mqtt.besked ==  "udskiftning":
+            States.timeout = False
             print("Udskiftning")
             for i in range(20):
                 blink_purple()
         
+        if States.timeout == True:
+            set_color(255, 255, 0)
+        elif States.timeout == False:
+            set_color(0, 0, 0)
+            States.timeout = True
+            
         if len(mqtt.besked) != 0: # Her nulstilles indkommende beskeder
             mqtt.besked = ""
             
