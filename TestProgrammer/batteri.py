@@ -11,7 +11,8 @@ def get_battery_percent():
     for i in range(64):
         adc_val += bat_adc.read()
     adc64_val = adc_val >> 6
-    bat_percent = (adc64_val - 1500) / 7.3
+    bat_percent = (adc64_val - 1590) / 7.3
+    print(adc64_val)
     return bat_percent
 
 while True:
