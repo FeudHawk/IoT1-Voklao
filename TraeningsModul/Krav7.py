@@ -19,7 +19,6 @@ def get_battery_percent():
     return bat_percent
 
 while True:
-    tm_bat.number(13)
     tm_bat.number(int(get_battery_percent()))
     print(get_battery_percent())
     sleep(1)

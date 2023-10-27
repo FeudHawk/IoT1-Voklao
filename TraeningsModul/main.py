@@ -1,9 +1,10 @@
+import tm1637
 import umqtt_robust2 as mqtt #Dette biblotek henter credentials, som gør det muligt at forbinde ESP32 til internet og Adafruit.
 from machine import UART, ADC, Pin, Timer
 from neopixel import NeoPixel
 from time import sleep #henter tids bibloteket, som gør det muligt at bruge sleep funktionen.
 from gps_bare_minimum import GPS_Minimum #Dette biblotek henter tid og dat, derudover henter den kordinat system til jordkloden, som gør det muligt at indhente latitude, longtitude og speed værdier.
-import tm1637
+
 
 ##########################################################
 
@@ -51,12 +52,12 @@ def get_adafruit_gps():
 #NeoPixel colors
 
 def set_color(r, g, b): # Vi definere set_color funktionen, så vi kan få neopixel til at lyse i forskellige farver
-    for i in range(antal_led):
+    for i in range(led_amount):
         np[i] = (r, g, b)
     np.write()
     
 def clear(): #Vi definere clear funktionen, så vi kan slukke led'erne på neopixel efter de er tændt
-    for i in range(antal_led):
+    for i in range(led_amount):
         np[i] = (0, 0, 0)
         np.write()
         
@@ -68,10 +69,10 @@ def blink_purple():
 
 def timeout(yellow_card_timer): #Definere funktionen timeout ved brug af yellow_card_timer
     global current_np #Brug global variable af current_np
-    global antal_led #Brug global variable af antal_led
+    global led_amount #Brug global variable af antal_led
     current_np -= 1 #Opdaterer current np til en mindre end før
-    antal_led -= 1 #Opdaterer total antal led til en mindre end før. Dette gør vi for at sikre os den ikke tænder alle LEDer igen
-    for i in range(antal_led): #Tænder alle tilgængelige np
+    led_amount -= 1 #Opdaterer total antal led til en mindre end før. Dette gør vi for at sikre os den ikke tænder alle LEDer igen
+    for i in range(led_amount): #Tænder alle tilgængelige np
         np[i] = (55, 55, 0) 
     np[current_np] = (0, 0, 0) #Slukker den nuværende np
     np.write() #Sender data til NeoPixel
@@ -79,8 +80,8 @@ def timeout(yellow_card_timer): #Definere funktionen timeout ved brug af yellow_
 
 def timeout_over(deinit_yellow_card): #Definere funktionen timeout_over ved brug af deinit_yellow_card
     yellow_card_timer.deinit() #Deinitializer den anden timer så den ikke kører mere
-    global antal_led #Brug global variable af antal_led
-    antal_led = 10 #Opdatere antal_led tilbage til 10
+    global led_amount #Brug global variable af antal_led
+    led_amount = 10 #Opdatere led_amount tilbage til 10
     set_color(0, 55, 0) #Lyser grønt i 5 sekunder før den går hent til stabil gul
     sleep(5)
     set_color(55, 55, 0)
@@ -94,7 +95,7 @@ def get_battery_percent():
     for i in range(64):
         adc_val += bat_adc.read() #lægger 64 adc læsninger sammen
     adc64_val = adc_val >> 6 #dividere med 64
-    bat_percent = (adc64_val - 1885) / 7.3 # ADC1885 = 0% og 1% = ADC7.3
+    bat_percent = (adc64_val - 1590) / 7.3 # ADC1590 = 0% og 1% = ADC7.3
     return bat_percent
 
 ##########################################################
@@ -103,6 +104,7 @@ while True:
     try:
         gps_data = get_adafruit_gps() #Sætter en variable til at call en funktion
         tm_bat.number(int(get_battery_percent())) #Sender batteridata til display
+        print(get_battery_percent())
 
         if mqtt.besked == "gult kort": #Tjekker om mqtt besked indeholder gult kort
             States.timeout = True #Sætter timeout state til true
@@ -111,7 +113,7 @@ while True:
             #Initialzer yellow_card_timer og kører hver minut og kører forevigt. Herefter kører den funktionen timeout
             yellow_card_timer.init(period=60000, mode=Timer.PERIODIC, callback=timeout)
             #Ininitializer deinit_yellow_card timer og kører kun 1 gang efter 10 minutter. Den kalder timeout funktionen
-            deinit_yellow_card.init(period=601000, mode=Timer.ONE_SHOT, callback=timeout_over)
+            deinit_yellow_card.init(period=600100, mode=Timer.ONE_SHOT, callback=timeout_over)
             
         if mqtt.besked ==  "udskiftning" and States.no_yellow == True:
             print("Udskiftning")
@@ -145,3 +147,4 @@ while True:
         print('Ctrl-C pressed...exiting')
         mqtt.c.disconnect()
         mqtt.sys.exit()
+
