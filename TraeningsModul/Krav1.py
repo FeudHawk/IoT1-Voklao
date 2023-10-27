@@ -39,7 +39,7 @@ def get_battery_percent():
     for i in range(64):
         adc_val += bat_adc.read() #lægger 64 adc læsninger sammen
     adc64_val = adc_val >> 6 #dividere med 64
-    bat_percent = (adc64_val - 1500) / 7.3 # ADC1500 = 0% og 1% = ADC7.3
+    bat_percent = (adc64_val - 1885) / 7.3 # ADC1500 = 0% og 1% = ADC7.3
     return bat_percent
 
 while True:

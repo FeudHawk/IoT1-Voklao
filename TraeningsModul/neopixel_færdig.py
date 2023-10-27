@@ -10,7 +10,7 @@ myTimer1 = Timer(1)
 myTimer2 = Timer(2)
 current_np = 10
     
-
+#test
 def set_color(r, g, b): # Vi definere set_color funktionen, så vi kan få neopixel til at lyse i forskellige farver
     for i in range(antal_led):
         np[i] = (r, g, b)
@@ -22,18 +22,15 @@ def clear(): #Vi definere clear funktionen, så vi kan slukke led'erne på neopi
         np.write()
         
 def blink_purple():
-    set_color(255, 0, 255) #Farve sat til lilla
+    set_color(55, 0, 55) #Farve sat til lilla
     sleep(0.5)
     clear()
     sleep(0.5)
  
 class States:
-    timeout = True
-
-
-
-
-
+    timeout = False
+    kort = True
+    no_gult = True
 
 def timeout(myTimer2):
     global current_np
@@ -42,42 +39,35 @@ def timeout(myTimer2):
     sleep(0.1)
     antal_led -= 1
     for i in range(antal_led):
-        np[i] = (255, 255, 0)
+        np[i] = (55, 55, 0)
     np[current_np] = (0, 0, 0)
     np.write()
 
-def jhg(myTimer1):
+def timeout_slut(myTimer1):
     global antal_led
     antal_led = 10
-    set_color(0, 255, 0)
+    set_color(0, 55, 0)
     sleep(5)
-    set_color(255, 255, 0)
+    set_color(55, 55, 0)
     myTimer2.deinit()
     
 while True:
     try:
         if mqtt.besked == "gult kort":
-<<<<<<< HEAD
-=======
             States.timeout = True
-#             print("Gult kort")
->>>>>>> 9d4621e3ecc4e71635c4aea6169f8f71fd86a908
-            set_color(255, 255, 0) #Farve sat til gul
+            States.no_gult = False
+            set_color(55, 55, 0) #Farve sat til gul
             myTimer2.init(period=1000, mode=Timer.PERIODIC, callback=timeout)
-            myTimer1.init(period=10000, mode=Timer.ONE_SHOT, callback=jhg)
+            myTimer1.init(period=10000, mode=Timer.ONE_SHOT, callback=timeout_slut)
             
-        elif mqtt.besked ==  "udskiftning":
-            States.timeout = False
+        elif mqtt.besked ==  "udskiftning" and States.no_gult == True:
             print("Udskiftning")
-            for i in range(20):
+            for i in range(10):
                 blink_purple()
-        
-        if States.timeout == True:
-            set_color(255, 255, 0)
-        elif States.timeout == False:
-            set_color(0, 0, 0)
-            States.timeout = True
-            
+        if mqtt.besked == "udskiftning" and States.timeout == True:
+            for i in range(10):
+                blink_purple()
+                set_color(55, 55, 0)    
         if len(mqtt.besked) != 0: # Her nulstilles indkommende beskeder
             mqtt.besked = ""
             
