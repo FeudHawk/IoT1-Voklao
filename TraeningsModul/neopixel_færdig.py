@@ -44,12 +44,13 @@ def timeout(myTimer2):
     np.write()
 
 def timeout_slut(myTimer1):
+    myTimer2.deinit()
     global antal_led
     antal_led = 10
     set_color(0, 55, 0)
-    sleep(5)
+    sleep(0.5)
     set_color(55, 55, 0)
-    myTimer2.deinit()
+    
     
 while True:
     try:
@@ -58,7 +59,7 @@ while True:
             States.no_gult = False
             set_color(55, 55, 0) #Farve sat til gul
             myTimer2.init(period=1000, mode=Timer.PERIODIC, callback=timeout)
-            myTimer1.init(period=10000, mode=Timer.ONE_SHOT, callback=timeout_slut)
+            myTimer1.init(period=11000, mode=Timer.ONE_SHOT, callback=timeout_slut)
             
         elif mqtt.besked ==  "udskiftning" and States.no_gult == True:
             print("Udskiftning")
