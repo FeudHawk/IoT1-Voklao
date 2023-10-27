@@ -1,6 +1,6 @@
 from imu import MPU6050  # https://github.com/micropython-IMU/micropython-mpu9x50
 import time
-from time import sleep,
+from time import sleep
 from machine import Pin, I2C
 i2c = I2C(0)
 imu = MPU6050(i2c)

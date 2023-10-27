@@ -1,6 +1,8 @@
 import tm1637
+import _thread
 import umqtt_robust2 as mqtt #Dette biblotek henter credentials, som gør det muligt at forbinde ESP32 til internet og Adafruit.
-from machine import UART, ADC, Pin, Timer
+from imu import MPU6050  # https://github.com/micropython-IMU/micropython-mpu9x50
+from machine import UART, ADC, Pin, Timer, I2C
 from neopixel import NeoPixel
 from time import sleep #henter tids bibloteket, som gør det muligt at bruge sleep funktionen.
 from gps_bare_minimum import GPS_Minimum #Dette biblotek henter tid og dat, derudover henter den kordinat system til jordkloden, som gør det muligt at indhente latitude, longtitude og speed værdier.
@@ -9,6 +11,8 @@ from gps_bare_minimum import GPS_Minimum #Dette biblotek henter tid og dat, deru
 ##########################################################
 
 tm_bat = tm1637.TM1637(clk=Pin(32), dio=Pin(33))
+tm_tack = tm1637.TM1637(clk=Pin(22), dio=Pin(23))
+
 
 gps_port = 2 #Det er hardware UART som har tildelt rx 16 og tx 17 på esp32
 gps_dataspeed = 9600 #Det er kommunikationshastighed i bits per sekund. 
@@ -24,6 +28,8 @@ current_np = 10
 np = NeoPixel(Pin(26, Pin.OUT),led_amount)
 yellow_card_timer = Timer(1)
 deinit_yellow_card = Timer(2)
+
+
 
 class States:
     timeout = False
@@ -100,6 +106,22 @@ def get_battery_percent():
 
 ##########################################################
 
+def tacklinger():
+    i2c = I2C(0)
+    imu = MPU6050(i2c)
+    acceleration = imu.accel
+    current_tacklinger = 0
+    while True:
+        accel1 = abs(acceleration.y)
+        sleep(0.1)
+        accel2 = abs(acceleration.y)
+        if accel1 < 0.6 and accel2 > 1.5:
+            current_tacklinger += 1
+        tm_tack.number(current_tacklinger)     
+        
+_thread.start_new_thread(tacklinger, ())
+
+
 while True:
     try:
         gps_data = get_adafruit_gps() #Sætter en variable til at call en funktion
@@ -147,4 +169,6 @@ while True:
         print('Ctrl-C pressed...exiting')
         mqtt.c.disconnect()
         mqtt.sys.exit()
+
+
 
