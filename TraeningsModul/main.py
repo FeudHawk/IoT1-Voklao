@@ -2,6 +2,11 @@ import umqtt_robust2 as mqtt #Dette biblotek henter credentials, som gør det mu
 from machine import UART, ADC, Pin
 from time import sleep #henter tids bibloteket, som gør det muligt at bruge sleep funktionen.
 from gps_bare_minimum import GPS_Minimum #Dette biblotek henter tid og dat, derudover henter den kordinat system til jordkloden, som gør det muligt at indhente latitude, longtitude og speed værdier.
+import tm1637
+
+##########################################################
+
+tm_bat = tm1637.TM1637(clk=Pin(32), dio=Pin(33))
 
 gps_port = 2 #Det er hardware UART som har tildelt rx 16 og tx 17 på esp32
 gps_dataspeed = 9600 #Det er kommunikationshastighed i bits per sekund. 
@@ -11,6 +16,8 @@ gps = GPS_Minimum(uart)
 
 bat_adc = ADC(Pin(34))
 bat_adc.atten(ADC.ATTN_11DB)
+
+##########################################################
 
 def get_adafruit_gps():
     speed, lat, lon = "", "", ""  # Initialiser variablerne
@@ -28,6 +35,14 @@ def get_adafruit_gps():
             return False
     else:
         return False
+    
+##########################################################
+#NeoPixel colors
+
+
+
+
+##########################################################
 
 #Tager et gennemsnit af adc værdien og omregner til procent
 #Kode inspiration taget fra Bo Hansen, twoway_remote_data.py   
@@ -39,19 +54,23 @@ def get_battery_percent():
     bat_percent = (adc64_val - 1885) / 7.3 # ADC1500 = 0% og 1% = ADC7.3
     return bat_percent
 
+##########################################################
+
 while True:
     try:
+        gps_data = get_adafruit_gps()
+        tm_bat.number(int(get_battery_percent())) #Sender batteri procent til display
+        
         mqtt.web_print(get_battery_percent(), 'Shadow02Hunter/feeds/Batteri/csv')
         sleep(3)
+
         # Hvis funktionen returnere en string er den True ellers returnere den False
-        gps_data = get_adafruit_gps()
-        
         if gps_data: # hvis der er korrekt data så send til adafruit
             print(f'\ngps_data er: {gps_data}')
             sleep(0.1)
             mqtt.web_print(get_adafruit_gps(), 'Shadow02Hunter/feeds/mapfeed/csv')               
         
-        sleep(4) # vent mere end 3 sekunder mellem hver besked der sendes til adafruit  
+        sleep(3) # vent mere end 3 sekunder mellem hver besked der sendes til adafruit  
         
         if len(mqtt.besked) != 0: # Her nulstilles indkommende beskeder
             mqtt.besked = ""            
