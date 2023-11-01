@@ -9,8 +9,8 @@ from gps_bare_minimum import GPS_Minimum #Dette biblotek henter tid og dat, deru
 
 ##########################################################
 
-tm_bat = tm1637.TM1637(clk=Pin(32), dio=Pin(33))
-tm_tack = tm1637.TM1637(clk=Pin(22), dio=Pin(23))
+tm_tack = tm1637.TM1637(clk=Pin(32), dio=Pin(33))
+tm_bat = tm1637.TM1637(clk=Pin(22), dio=Pin(23))
 
 gps_port = 2 #Det er hardware UART som har tildelt rx 16 og tx 17 på esp32
 gps_dataspeed = 9600 #Det er kommunikationshastighed i bits per sekund. 
@@ -116,11 +116,11 @@ def tacklinger():
         accel_x2 = abs(imu.accel.x)
         accel_z2 = abs(imu.accel.z)
         
-        if accel_y1 < 1 and accel_y2 > 1.3:
+        if accel_y1 < 1 and accel_y2 > 1.5:
             current_tacklinger += 1
-        elif accel_x1 < 1 and accel_x2 > 1.45:
+        elif accel_x1 < 1 and accel_x2 > 1.5:
             current_tacklinger += 1
-        elif accel_z1 < 1 and accel_z2 > 1.45:
+        elif accel_z1 < 1 and accel_z2 > 1.5:
             current_tacklinger += 1
             
         #Sender vi antal af tacklinger til display
@@ -179,5 +179,7 @@ while True:
         print('Ctrl-C pressed...exiting')
         mqtt.c.disconnect()
         mqtt.sys.exit()
+
+
 
 
