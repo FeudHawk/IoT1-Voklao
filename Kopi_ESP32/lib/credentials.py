@@ -1,8 +1,4 @@
 credentials = {
-#    'ssid' : 'Lightyear',
-#    'password' : '#4llenDebris',
-#    'ssid' : 'KEA_Starlink',
-#    'password' : 'KeaStarlink2023',
     'ssid' : 'LTE-1824',
     'password' : 'Password1',
     'ADAFRUIT_IO_URL' : b'io.adafruit.com',

@@ -7,12 +7,10 @@ from neopixel import NeoPixel
 from time import sleep #henter tids bibloteket, som gør det muligt at bruge sleep funktionen.
 from gps_bare_minimum import GPS_Minimum #Dette biblotek henter tid og dat, derudover henter den kordinat system til jordkloden, som gør det muligt at indhente latitude, longtitude og speed værdier.
 
-
 ##########################################################
 
 tm_bat = tm1637.TM1637(clk=Pin(32), dio=Pin(33))
 tm_tack = tm1637.TM1637(clk=Pin(22), dio=Pin(23))
-
 
 gps_port = 2 #Det er hardware UART som har tildelt rx 16 og tx 17 på esp32
 gps_dataspeed = 9600 #Det er kommunikationshastighed i bits per sekund. 
@@ -27,8 +25,6 @@ current_np = 10
 np = NeoPixel(Pin(26, Pin.OUT),led_amount)
 yellow_card_timer = Timer(1)
 deinit_yellow_card = Timer(2)
-
-
 
 class States:
     timeout = False
@@ -111,18 +107,29 @@ def tacklinger():
     imu = MPU6050(i2c) #Assigner MPU6050 klassen fra imu.py til imu variablen
     current_tacklinger = 0
     while True:
-        #Her tager vi to værdier på acceleration på y-aksen og sammenligner de absoulute numre. 
-        accel1 = abs(imu.accel.y) #
+        #Her tager vi to værdier på acceleration på yxz-aksen og sammenligner de absoulute numre. 
+        accel_y1 = abs(imu.accel.y)
+        accel_x1 = abs(imu.accel.x)
+        accel_z1 = abs(imu.accel.z)
         sleep(0.1)
-        accel2 = abs(imu.accel.y)
-        if accel1 < 1 and accel2 > 1.2:
+        accel_y2 = abs(imu.accel.y)
+        accel_x2 = abs(imu.accel.x)
+        accel_z2 = abs(imu.accel.z)
+        
+        if accel_y1 < 1 and accel_y2 > 1.3:
             current_tacklinger += 1
+        elif accel_x1 < 1 and accel_x2 > 1.45:
+            current_tacklinger += 1
+        elif accel_z1 < 1 and accel_z2 > 1.45:
+            current_tacklinger += 1
+            
         #Sender vi antal af tacklinger til display
         tm_tack.number(current_tacklinger)     
 
 #Her starter vi funktionen tacklinger i en thread, som gør at den kører selvom vi har sleep i while True løkken
 _thread.start_new_thread(tacklinger, ())
 
+##########################################################
 
 while True:
     try:
