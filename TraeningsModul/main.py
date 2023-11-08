@@ -7,29 +7,24 @@ from neopixel import NeoPixel
 from time import sleep #henter tids bibloteket, som gør det muligt at bruge sleep funktionen.
 from gps_bare_minimum import GPS_Minimum #Dette biblotek henter tid og dat, derudover henter den kordinat system til jordkloden, som gør det muligt at indhente latitude, longtitude og speed værdier.
 
-
 ##########################################################
 
-tm_bat = tm1637.TM1637(clk=Pin(32), dio=Pin(33))
-tm_tack = tm1637.TM1637(clk=Pin(22), dio=Pin(23))
-
+tm_tack = tm1637.TM1637(clk=Pin(32), dio=Pin(33))
+tm_bat = tm1637.TM1637(clk=Pin(22), dio=Pin(23))
 
 gps_port = 2 #Det er hardware UART som har tildelt rx 16 og tx 17 på esp32
 gps_dataspeed = 9600 #Det er kommunikationshastighed i bits per sekund. 
-
 uart = UART(gps_port, gps_dataspeed) #definere UART til at være GPS porten og dataspeed, det er også de steder UART bliver brugt.
 gps = GPS_Minimum(uart)
 
 bat_adc = ADC(Pin(34))
-bat_adc.atten(ADC.ATTN_11DB)
+bat_adc.atten(ADC.ATTN_11DB) #Sætter attenuation til 11dB hvilket vil sige at den kan læse mellem 0v og 3,3v
 
 led_amount = 10
 current_np = 10
 np = NeoPixel(Pin(26, Pin.OUT),led_amount)
 yellow_card_timer = Timer(1)
 deinit_yellow_card = Timer(2)
-
-
 
 class States:
     timeout = False
@@ -47,9 +42,9 @@ def get_adafruit_gps():
             speed =str(gps.get_speed())
             lat = str(gps.get_latitude())
             lon = str(gps.get_longitude())
-            return speed + "," + lat + "," + lon + "," + "0.0"
+            return speed + "," + lat + "," + lon + "," + "0.0" # Adafruit skal bruge altitude, derfor er den sat til 0.0
         else: # hvis ikke både hastighed, latitude og longtitude er korrekte 
-            print(f"Waiting for GPS DATA - Move GPS to place with acces to the sky:\nspeed: {speed}\nlatitude: {lat}\nlongtitude: {lon}")
+            print("Waiting for GPS DATA - Move GPS to place with acces to the sky")
             return False
     else:
         return False
@@ -106,27 +101,40 @@ def get_battery_percent():
 
 ##########################################################
 
+#Regner antal af tacklinger
 def tacklinger():
-    i2c = I2C(0)
-    imu = MPU6050(i2c)
-    acceleration = imu.accel
+    i2c = I2C(0) # Assigner i2c til I2C klassen og bruger slot 0 på esp32
+    imu = MPU6050(i2c) #Assigner MPU6050 klassen fra imu.py til imu variablen
     current_tacklinger = 0
     while True:
-        accel1 = abs(acceleration.y)
+        #Her tager vi to værdier på acceleration på yxz-aksen og sammenligner de absoulute numre. 
+        accel_y1 = abs(imu.accel.y)
+        accel_x1 = abs(imu.accel.x)
+        accel_z1 = abs(imu.accel.z)
         sleep(0.1)
-        accel2 = abs(acceleration.y)
-        if accel1 < 0.6 and accel2 > 1.5:
-            current_tacklinger += 1
-        tm_tack.number(current_tacklinger)     
+        accel_y2 = abs(imu.accel.y)
+        accel_x2 = abs(imu.accel.x)
+        accel_z2 = abs(imu.accel.z)
         
+        if accel_y1 < 1 and accel_y2 > 1.5:
+            current_tacklinger += 1
+        elif accel_x1 < 1 and accel_x2 > 1.5:
+            current_tacklinger += 1
+        elif accel_z1 < 1 and accel_z2 > 1.5:
+            current_tacklinger += 1
+            
+        #Sender vi antal af tacklinger til display
+        tm_tack.number(current_tacklinger)     
+
+#Her starter vi funktionen tacklinger i en thread, som gør at den kører selvom vi har sleep i while True løkken
 _thread.start_new_thread(tacklinger, ())
 
+##########################################################
 
 while True:
     try:
         gps_data = get_adafruit_gps() #Sætter en variable til at call en funktion
         tm_bat.number(int(get_battery_percent())) #Sender batteridata til display
-        print(get_battery_percent())
 
         if mqtt.besked == "gult kort": #Tjekker om mqtt besked indeholder gult kort
             States.timeout = True #Sætter timeout state til true
@@ -136,12 +144,14 @@ while True:
             yellow_card_timer.init(period=60000, mode=Timer.PERIODIC, callback=timeout)
             #Ininitializer deinit_yellow_card timer og kører kun 1 gang efter 10 minutter. Den kalder timeout funktionen
             deinit_yellow_card.init(period=600100, mode=Timer.ONE_SHOT, callback=timeout_over)
-            
+         
+        #Hvis udskifting er modtaget fra adafruit og vi ikke har fået gult kort, så kun blink lilla 
         if mqtt.besked ==  "udskiftning" and States.no_yellow == True:
             print("Udskiftning")
             for i in range(10):
                 blink_purple()
         
+        #Hvis udskifting er modtaget fra adafruit og vi har fået gult kort, så blink lilla og sæt den til gul bagefter 
         if mqtt.besked == "udskiftning" and States.timeout == True:
             for i in range(10):
                 blink_purple()
@@ -151,7 +161,7 @@ while True:
 
         # Hvis funktionen returnere en string er den True ellers returnere den False
         if gps_data: # hvis der er korrekt data så send til adafruit
-            print(f'\ngps_data er: {gps_data}')
+            print('gps_data er:', gps_data)
             sleep(0.1)
             mqtt.web_print(get_adafruit_gps(), 'Shadow02Hunter/feeds/mapfeed/csv')               
         
@@ -169,6 +179,7 @@ while True:
         print('Ctrl-C pressed...exiting')
         mqtt.c.disconnect()
         mqtt.sys.exit()
+
 
 
 
